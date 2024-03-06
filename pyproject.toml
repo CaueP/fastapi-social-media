@@ -1,0 +1,30 @@
+[tool.poetry]
+name = "fastapi-social-media"
+version = "0.1.0"
+description = "A social media implemented with FastAPI"
+authors = ["Cauê Garcia Polimanti <caue.polimanti@gmail.com>"]
+readme = "README.md"
+package-mode = false
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.110.0"
+uvicorn = {extras = ["standard"], version = "^0.27.1"}
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.2"
+ruff = "^0.3.0"
+isort = "^5.13.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+# Linting
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 99
+src = ["app", "tests"]
+target-version = "py312"
