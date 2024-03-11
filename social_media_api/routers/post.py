@@ -43,7 +43,7 @@ async def get_all_posts():
 async def create_comment(comment: CommentIn):
     post = find_post(comment.post_id)
     if not post:
-        return HTTPException(status_code=404, detail="Post not found")
+        raise HTTPException(status_code=404, detail="Post not found")
 
     data = comment.model_dump()
     last_record_id = get_last_id(comment_table)
@@ -67,7 +67,7 @@ async def get_comments_on_post(post_id: int):
 async def get_post_with_comments(post_id: int):
     post = find_post(post_id)
     if not post:
-        return HTTPException(status_code=404, detail="Post not found")
+        raise HTTPException(status_code=404, detail="Post not found")
 
     return {
         "post": post,
