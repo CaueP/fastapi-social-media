@@ -8,6 +8,9 @@ class UserPostIn(BaseModel):
 class UserPost(UserPostIn):
     id: int
 
+    class Config:
+        from_attributes = True
+
 
 class CommentIn(BaseModel):
     body: str
@@ -16,6 +19,9 @@ class CommentIn(BaseModel):
 
 class Comment(CommentIn):
     id: int
+
+    class Config:
+        from_attributes = True
 
 
 class UserPostWithComments(BaseModel):

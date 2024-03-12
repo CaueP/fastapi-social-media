@@ -1,11 +1,16 @@
+import os
+
 from typing import AsyncGenerator, Generator
 import pytest
 
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
 
-from social_media_api.main import app
-from social_media_api.routers.post import post_table, comment_table
+os.environ["ENV_STATE"] = "test"
+
+from social_media_api.database import database  # noqa: E402
+# Changed order so the "ENV_STATE" environment variable is set before loading the app
+from social_media_api.main import app  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -19,10 +24,11 @@ def client() -> Generator:
 
 
 @pytest.fixture(autouse=True)
-def db() -> Generator:
-    post_table.clear()
-    comment_table.clear()
+async def db() -> AsyncGenerator:
+    await database.connect()
     yield
+    await database.disconnect()
+
 
 @pytest.fixture
 async def async_client(client) -> AsyncGenerator:
