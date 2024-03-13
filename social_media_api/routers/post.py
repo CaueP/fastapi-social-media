@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, HTTPException
 from social_media_api.database import comment_table, post_table, database
 from social_media_api.models.post import (
@@ -8,12 +10,15 @@ from social_media_api.models.post import (
     UserPostWithComments,
 )
 
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
 
 async def find_post(post_id: int):
+    logger.info(f"Finding post with id {post_id}")
     query = post_table.select().where(post_table.c.id == post_id)
+    logger.debug(query)
     return await database.fetch_one(query)
 
 
@@ -29,7 +34,9 @@ async def create_post(post: UserPostIn):
 
 @router.get("/post", response_model=list[UserPost])
 async def get_all_posts():
+    logger.info("Getting all posts")
     query = post_table.select()
+    logger.debug(query)
     return await database.fetch_all(query)
 
 
@@ -37,6 +44,7 @@ async def get_all_posts():
 async def create_comment(comment: CommentIn):
     post = await find_post(comment.post_id)
     if not post:
+        logger.error(f"Post with id {comment.post_id} not found")
         raise HTTPException(status_code=404, detail="Post not found")
 
     data = comment.model_dump()
@@ -51,8 +59,9 @@ async def create_comment(comment: CommentIn):
 async def get_comments_on_post(post_id: int):
     post = await find_post(post_id)
     if not post:
+        logger.error(f"Post with id {post_id} not found")
         return HTTPException(status_code=404, detail="Post not found")
-    
+
     query = comment_table.select().where(comment_table.c.post_id == post_id)
     return await database.fetch_all(query)
 
@@ -61,6 +70,7 @@ async def get_comments_on_post(post_id: int):
 async def get_post_with_comments(post_id: int):
     post = await find_post(post_id)
     if not post:
+        logger.error(f"Post with id {post_id} not found")
         raise HTTPException(status_code=404, detail="Post not found")
 
     return {
