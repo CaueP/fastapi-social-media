@@ -17,7 +17,7 @@ def configure_logging() -> None:
             },
             "handlers": {
                 "default": {
-                    "class": "logging.StreamHandler",
+                    "class": "rich.logging.RichHandler",
                     "level": "DEBUG",
                     "formatter": "console", # maps to the formatter name
                 }
