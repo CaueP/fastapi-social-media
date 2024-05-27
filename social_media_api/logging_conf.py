@@ -8,11 +8,18 @@ def configure_logging() -> None:
         {
             "version": 1,
             "disable_existing_loggers": False,
+            "filters": {
+                "correlation_id": {
+                    "()": "asgi_correlation_id.CorrelationIdFilter", # "()" to pass ass keyword arguments to the filter
+                    "uuid_length": 8 if isinstance(config, DevConfig) else 32,
+                    "default_value":"-",
+                }
+            },
             "formatters": {
                 "console": {
                     "class": "logging.Formatter",
                     "datefmt": "%Y-%m-%dT%H:%M:%S",
-                    "format": "%(name)s:%(lineno)d - %(message)s",  # %(levelname)s
+                    "format": "(%(correlation_id)s) %(name)s:%(lineno)d - %(message)s",  # %(levelname)s
                 },
                 "file": {
                     "class": "logging.Formatter",
@@ -20,7 +27,7 @@ def configure_logging() -> None:
                     "format": (
                         "%(asctime)s.%(msecs)03dZ | "  # Log with time in ISO format
                         "%(levelname)-8s | "  # Show level name always with total of 8 characters to keep them lined up in the terminal
-                        "%(name)s:%(lineno)d -  "
+                        "[%(correlation_id)s] %(name)s:%(lineno)d -  "
                         "%(message)s"
                     ),
                 },
@@ -30,11 +37,13 @@ def configure_logging() -> None:
                     "class": "rich.logging.RichHandler",
                     "level": "DEBUG",
                     "formatter": "console",  # maps to the formatter name
+                    "filters": ["correlation_id"],
                 },
                 "rotating_file": {
                     "class": "logging.handlers.RotatingFileHandler",
                     "level": "DEBUG",
                     "formatter": "file",
+                    "filters": ["correlation_id"],
                     "filename": "social_media_api.log",
                     "maxBytes": 1 * 1024 * 1024,  # 1MB
                     "backupCount": 5,  # Keep only 2 log files, total of 5 MB with this config
