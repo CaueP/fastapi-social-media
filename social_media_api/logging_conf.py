@@ -22,12 +22,12 @@ def configure_logging() -> None:
                     "format": "(%(correlation_id)s) %(name)s:%(lineno)d - %(message)s",  # %(levelname)s
                 },
                 "file": {
-                    "class": "logging.Formatter",
+                    "class": "pythonjsonlogger.jsonlogger.JsonFormatter",
                     "datefmt": "%Y-%m-%dT%H:%M:%S",
                     "format": (
-                        "%(asctime)s.%(msecs)03dZ | "  # Log with time in ISO format
-                        "%(levelname)-8s | "  # Show level name always with total of 8 characters to keep them lined up in the terminal
-                        "[%(correlation_id)s] %(name)s:%(lineno)d -  "
+                        "%(asctime)s %(msecs)03dZ "  # Log with time in ISO format
+                        "%(levelname)-8s "  # Show level name always with total of 8 characters to keep them lined up in the terminal
+                        "%(correlation_id)s %(name)s %(lineno)d "
                         "%(message)s"
                     ),
                 },
