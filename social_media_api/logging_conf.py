@@ -1,6 +1,25 @@
+import logging
 from logging.config import dictConfig
 
 from social_media_api.config import config, DevConfig
+
+
+def obfuscated(email: str, obfuscated_length: int) -> str:
+    username, domain = email.split("@")
+    asterisks_length = len(username) - obfuscated_length
+    return f"{username[:obfuscated_length]}{"*" * asterisks_length}@{domain}"
+
+
+class EmailObfuscatorFilter(logging.Filter):
+    def __init__(self, name: str = "", obfuscated_length: int = 2):
+        super().__init__(name)
+        self.obfuscated_length = obfuscated_length
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        if "email" in record.__dict__:
+            record.email = obfuscated(record.email, self.obfuscated_length)
+        return True
+
 
 
 def configure_logging() -> None:
@@ -13,6 +32,10 @@ def configure_logging() -> None:
                     "()": "asgi_correlation_id.CorrelationIdFilter", # "()" to pass ass keyword arguments to the filter
                     "uuid_length": 8 if isinstance(config, DevConfig) else 32,
                     "default_value":"-",
+                },
+                "email_obfuscation": {
+                    "()": EmailObfuscatorFilter,
+                    "obfuscated_length": 2 if isinstance(config, DevConfig) else 0,
                 }
             },
             "formatters": {
@@ -37,13 +60,13 @@ def configure_logging() -> None:
                     "class": "rich.logging.RichHandler",
                     "level": "DEBUG",
                     "formatter": "console",  # maps to the formatter name
-                    "filters": ["correlation_id"],
+                    "filters": ["correlation_id", "email_obfuscation"],
                 },
                 "rotating_file": {
                     "class": "logging.handlers.RotatingFileHandler",
                     "level": "DEBUG",
                     "formatter": "file",
-                    "filters": ["correlation_id"],
+                    "filters": ["correlation_id", "email_obfuscation"],
                     "filename": "social_media_api.log",
                     "maxBytes": 1 * 1024 * 1024,  # 1MB
                     "backupCount": 5,  # Keep only 2 log files, total of 5 MB with this config

@@ -42,13 +42,16 @@ async def get_all_posts():
 
 @router.post("/comment", response_model=Comment, status_code=201)
 async def create_comment(comment: CommentIn):
+    logger.info("Creating comment")
     post = await find_post(comment.post_id)
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
     data = comment.model_dump()
-
     query = comment_table.insert().values(data)
+
+    logger.debug(query, extra={"email": "bob.burnquist@example.net"})
+
     last_record_id = await database.execute(query)
 
     return {**data, "id": last_record_id, "post_id": comment.post_id}
