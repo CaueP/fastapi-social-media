@@ -4,7 +4,7 @@ from typing import AsyncGenerator, Generator
 import pytest
 
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
+from httpx import ASGITransport, AsyncClient
 from social_media_api.database import engine, metadata, user_table
 
 os.environ["ENV_STATE"] = "test"
@@ -35,7 +35,7 @@ async def db() -> AsyncGenerator:
 
 @pytest.fixture
 async def async_client(client) -> AsyncGenerator:
-    async with AsyncClient(app=app, base_url=client.base_url) as ac:
+    async with AsyncClient(transport=ASGITransport(app=app), base_url=client.base_url) as ac:
         yield ac
 
 
