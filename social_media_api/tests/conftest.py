@@ -5,6 +5,7 @@ import pytest
 
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
+from social_media_api.database import engine, metadata, user_table
 
 os.environ["ENV_STATE"] = "test"
 
@@ -23,10 +24,12 @@ def client() -> Generator:
     yield TestClient(app)
 
 
-@pytest.fixture(autouse=True)
+@pytest.fixture(autouse=True, scope="function")
 async def db() -> AsyncGenerator:
     await database.connect()
+    metadata.create_all(engine)
     yield
+    metadata.drop_all(engine)
     await database.disconnect()
 
 
