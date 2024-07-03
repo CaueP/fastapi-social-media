@@ -107,6 +107,27 @@ async def test_create_comment(
 
 
 @pytest.mark.anyio
+async def test_create_comment_expired_token(
+    async_client: AsyncClient, created_post, registered_user: dict, mocker
+):
+    mocker.patch(
+        "social_media_api.security.access_token_expire_minutes",
+        return_value=-1,
+    )
+    token = create_access_token(registered_user["email"])
+
+    body = "Test comment"
+    response = await async_client.post(
+        "/comment",
+        json={"body": body, "post_id": created_post["id"]},
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 401
+    assert "Token has expired" in response.json()["detail"]
+
+
+@pytest.mark.anyio
 async def test_get_comments_on_post(
     async_client: AsyncClient, created_post: dict, created_comment: dict
 ) -> None:
