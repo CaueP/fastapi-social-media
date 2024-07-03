@@ -1,8 +1,10 @@
 import datetime
+from email import header
 import logging
 
 from fastapi import HTTPException, status
-from jose import jwt
+from fastapi.security import OAuth2PasswordBearer
+from jose import ExpiredSignatureError, JWTError, jwt
 from passlib.context import CryptContext
 
 from social_media_api.database import database, user_table
@@ -11,6 +13,7 @@ logger = logging.getLogger(__name__)
 
 SECRET_KEY = "9281c5dcb860fe4a633799c60c259cda"
 ALGORITHM = "HS256"
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 pwd_context = CryptContext(schemes=["bcrypt"])
 
@@ -18,6 +21,7 @@ pwd_context = CryptContext(schemes=["bcrypt"])
 credentials_exception = HTTPException(
     status_code=status.HTTP_401_UNAUTHORIZED,
     detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
 )
 
 
@@ -63,4 +67,24 @@ async def authenticate_user(email: str, password: str):
     if not verify_password(password, user.password):
         raise credentials_exception
 
+    return user
+
+
+async def get_current_user(token: str):
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except ExpiredSignatureError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from e
+    except JWTError as e:
+        raise credentials_exception from e
+    user = await get_user(email=email)
+    if user is None:
+        raise credentials_exception
     return user

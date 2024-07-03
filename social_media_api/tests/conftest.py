@@ -10,6 +10,7 @@ from social_media_api.database import engine, metadata, user_table
 os.environ["ENV_STATE"] = "test"
 
 from social_media_api.database import database  # noqa: E402
+
 # Changed order so the "ENV_STATE" environment variable is set before loading the app
 from social_media_api.main import app  # noqa: E402
 
@@ -47,3 +48,9 @@ async def registered_user(async_client: AsyncClient) -> dict:
     user = await database.fetch_one(query)
     user_details["id"] = user.id
     return user_details
+
+
+@pytest.fixture
+async def logged_in_token(async_client: AsyncClient, registered_user: dict) -> str:
+    response = await async_client.post("/token", json=registered_user)
+    return response.json()["access_token"]
