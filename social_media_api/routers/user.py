@@ -37,6 +37,13 @@ async def register(user: UserIn):
 
 
 @router.post("/token")
+async def login(user: UserIn):
+    user = await authenticate_user(user.email, user.password)
+    access_token = create_access_token(user.email)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/token/swagger")
 async def login_oauth_swagger_v2(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
 ):
