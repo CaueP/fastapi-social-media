@@ -13,6 +13,13 @@ class UserPost(UserPostIn):
         from_attributes = True
 
 
+class UserPostWithLikes(UserPost):
+    likes: int
+
+    class Config:
+        from_attributes = True
+
+
 class CommentIn(BaseModel):
     body: str
     post_id: int
@@ -27,5 +34,13 @@ class Comment(CommentIn):
 
 
 class UserPostWithComments(BaseModel):
-    post: UserPost
+    post: UserPostWithLikes
     comments: list[Comment]
+
+
+class PostLikeIn(BaseModel):
+    post_id: int
+
+class PostLike(PostLikeIn):
+    id: int
+    user_id: int
